@@ -1,4 +1,5 @@
 import morfologik.stemming.polish.PolishStemmer
+import mu.KLogging
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Stream
@@ -7,18 +8,27 @@ import kotlin.streams.asSequence
 class Corpora(private val filename: String) {
     private val stemmer = PolishStemmer()
     private val cooccurrences: MutableMap<Pair<String, String>, Int> = mutableMapOf()
-    private val occurrences = words().asSequence().groupBy { it }.map {
-        Pair(it.key, it.value.count())
-    }.toMap()
+    private val occurrences: Map<String, Int> by lazy(LazyThreadSafetyMode.NONE) {
+        logger.debug("Counting occurrences...")
+        words().asSequence().groupBy { it }.map {
+            Pair(it.key, it.value.count())
+        }.toMap()
+    }
 
     private val size = words().count()
     private val alpha = 0.66
     private val beta = 0.00002
     private val gamma = 0.00002
+    private val numberOfAssociations = 10
 
     private val betaSize = beta * size
     private val gammaSize = gamma * size
     private val sizeToAlpha = Math.pow(size.toDouble(), alpha)
+
+    init {
+        logger.info("File: $filename")
+        logger.info("Size: $size words")
+    }
 
     fun words(): Stream<String> = Files.lines(Paths.get(filename))
             .map { it.split(Regex("\\s+")) }
@@ -41,7 +51,7 @@ class Corpora(private val filename: String) {
             .map { Pair(it, calculateStrength(stimulus, it)) }
             .asSequence()
             .sortedBy { it.second }
-            .take(10)
+            .take(numberOfAssociations)
             .toList()
     )
 
@@ -60,4 +70,6 @@ class Corpora(private val filename: String) {
         val occurrence = occurrences[word]!!
         return if (occurrence > betaSize) Math.pow(occurrence.toDouble(), alpha) else gammaSize
     }
+
+    companion object: KLogging()
 }
