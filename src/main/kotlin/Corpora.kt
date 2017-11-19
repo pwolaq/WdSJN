@@ -6,6 +6,11 @@ import java.util.stream.Stream
 import kotlin.streams.asSequence
 
 class Corpora(private val filename: String) {
+    private val alpha = 0.66
+    private val beta = 0.00002
+    private val gamma = 0.00002
+    private val numberOfAssociations = 10
+
     private val stemmer = PolishStemmer()
     private val cooccurrences: MutableMap<Pair<String, String>, Int> = mutableMapOf()
     private val occurrences: Map<String, Int> by lazy(LazyThreadSafetyMode.NONE) {
@@ -14,20 +19,24 @@ class Corpora(private val filename: String) {
             Pair(it.key, it.value.count())
         }.toMap()
     }
-
-    private val size = words().count()
-    private val alpha = 0.66
-    private val beta = 0.00002
-    private val gamma = 0.00002
-    private val numberOfAssociations = 10
-
-    private val betaSize = beta * size
-    private val gammaSize = gamma * size
-    private val sizeToAlpha = Math.pow(size.toDouble(), alpha)
+    private val size: Long by lazy(LazyThreadSafetyMode.NONE) {
+        logger.debug("Counting words...")
+        words().count()
+    }
 
     init {
         logger.info("File: $filename")
         logger.info("Size: $size words")
+    }
+
+    private val betaSize: Double by lazy(LazyThreadSafetyMode.NONE) {
+        beta * size
+    }
+    private val gammaSize: Double by lazy(LazyThreadSafetyMode.NONE) {
+        gamma * size
+    }
+    private val sizeToAlpha: Double by lazy(LazyThreadSafetyMode.NONE) {
+        Math.pow(size.toDouble(), alpha)
     }
 
     fun words(): Stream<String> = Files.lines(Paths.get(filename))
@@ -46,14 +55,17 @@ class Corpora(private val filename: String) {
 
     fun has(word: String) = occurrences.containsKey(word)
 
-    fun associationsFor(stimulus: String) = Pair(stimulus, occurrences.keys
-            .stream()
-            .map { Pair(it, calculateStrength(stimulus, it)) }
-            .asSequence()
-            .sortedBy { it.second }
-            .take(numberOfAssociations)
-            .toList()
-    )
+    fun associationsFor(stimulus: String): Pair<String, List<Pair<String, Double>>> {
+        logger.debug("Calculating associations for $stimulus...")
+        return Pair(stimulus, occurrences.keys
+                .stream()
+                .map { Pair(it, calculateStrength(stimulus, it)) }
+                .asSequence()
+                .sortedBy { it.second }
+                .take(numberOfAssociations)
+                .toList()
+        )
+    }
 
     private fun transform(word: String) = stem(word.toLowerCase().replace(Regex("[^a-ząćęłóńśżź]"), ""))
 

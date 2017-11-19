@@ -25,7 +25,7 @@ dependencies {
     compile group: 'org.carrot2', name: 'morfologik-polish', version: '2.1.4'
     compile 'io.github.microutils:kotlin-logging:1.4.6'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
 }
 compileKotlin {
     kotlinOptions {

@@ -1,13 +1,19 @@
 import mu.KLogging
 import java.util.stream.Stream
 
-class App(private val corpora: Corpora, private val stimuli: List<String>, private val window: Window) {
+class App(private val corporaFile: String, private val stimuli: List<String>, windowSize: Int) {
+    private val window = Window(windowSize)
+    private val corpora: Corpora by lazy(LazyThreadSafetyMode.NONE) {
+        logger.debug("Reading corpora...")
+        Corpora(corporaFile)
+    }
+
     init {
         logger.info("Stimuli: ${stimuli.joinToString()}")
         logger.debug("Calculating cooccurrences...")
         calculateCooccurrences()
-        logger.debug("Displaying associations...")
-        displayAssociations()
+        logger.debug("Calculating associations...")
+        calculateAssociations()
     }
 
     private fun calculateCooccurrences() = Stream.concat(
@@ -21,7 +27,7 @@ class App(private val corpora: Corpora, private val stimuli: List<String>, priva
         window.slide(it)
     }
 
-    private fun displayAssociations() = stimuli
+    private fun calculateAssociations() = stimuli
             .filter(corpora::has)
             .map(corpora::associationsFor)
             .forEach {
@@ -37,9 +43,5 @@ fun main(args: Array<String>) {
         throw IllegalArgumentException("Invalid number of arguments. Corpora and at least one stimulus word are required.")
     }
 
-    val corpora = Corpora(args[0])
-    val stimuli = args.drop(1)
-    val window = Window(12)
-
-    App(corpora, stimuli, window)
+    App(args[0], args.drop(1), 12)
 }
