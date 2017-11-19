@@ -4,7 +4,7 @@ import java.nio.file.Paths
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
-class Corpus(private val filename: String) {
+class Corpora(private val filename: String) {
     private val stemmer = PolishStemmer()
     private val cooccurrences: MutableMap<Pair<String, String>, Int> = mutableMapOf()
     private val occurrences = words().asSequence().groupBy { it }.map {
