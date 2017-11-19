@@ -1,5 +1,6 @@
 import morfologik.stemming.polish.PolishStemmer
 import mu.KLogging
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Stream
@@ -15,13 +16,17 @@ class Corpora(private val filename: String) {
     private val cooccurrences: MutableMap<Pair<String, String>, Int> = mutableMapOf()
     private val occurrences: Map<String, Int> by lazy(LazyThreadSafetyMode.NONE) {
         logger.debug("Counting occurrences...")
-        words().asSequence().groupBy { it }.map {
+        val result = words().asSequence().groupBy { it }.map {
             Pair(it.key, it.value.count())
         }.toMap()
+        logger.debug("Counting occurrences [DONE]")
+        result
     }
     private val size: Long by lazy(LazyThreadSafetyMode.NONE) {
         logger.debug("Counting words...")
-        words().count()
+        val result = words().count()
+        logger.debug("Counting words [DONE]")
+        result
     }
 
     init {
@@ -39,7 +44,9 @@ class Corpora(private val filename: String) {
         Math.pow(size.toDouble(), alpha)
     }
 
-    fun words(): Stream<String> = Files.lines(Paths.get(filename))
+    fun words(): Stream<String> = File(filename)
+            .bufferedReader()
+            .lines()
             .map { it.split(Regex("\\s+")) }
             .flatMap { it.stream() }
             .map(this::transform)
@@ -57,7 +64,7 @@ class Corpora(private val filename: String) {
 
     fun associationsFor(stimulus: String): Pair<String, List<Pair<String, Double>>> {
         logger.debug("Calculating associations for $stimulus...")
-        return Pair(stimulus, occurrences.keys
+        val result = Pair(stimulus, occurrences.keys
                 .stream()
                 .map { Pair(it, calculateStrength(stimulus, it)) }
                 .asSequence()
@@ -65,6 +72,8 @@ class Corpora(private val filename: String) {
                 .take(numberOfAssociations)
                 .toList()
         )
+        logger.debug("Calculating associations for $stimulus [DONE]")
+        return result
     }
 
     private fun transform(word: String) = stem(word.toLowerCase().replace(Regex("[^a-ząćęłóńśżź]"), ""))

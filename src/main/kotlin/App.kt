@@ -5,15 +5,19 @@ class App(private val corporaFile: String, private val stimuli: List<String>, wi
     private val window = Window(windowSize)
     private val corpora: Corpora by lazy(LazyThreadSafetyMode.NONE) {
         logger.debug("Reading corpora...")
-        Corpora(corporaFile)
+        val result = Corpora(corporaFile)
+        logger.debug("Reading corpora [DONE]")
+        result
     }
 
     init {
         logger.info("Stimuli: ${stimuli.joinToString()}")
         logger.debug("Calculating cooccurrences...")
         calculateCooccurrences()
+        logger.debug("Calculating cooccurrences [DONE]")
         logger.debug("Calculating associations...")
         calculateAssociations()
+        logger.debug("Calculating associations [DONE]")
     }
 
     private fun calculateCooccurrences() = Stream.concat(
