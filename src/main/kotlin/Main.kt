@@ -9,11 +9,11 @@ fun main(args: Array<String>) {
     val stimuli = args.drop(1)
     val window = Window(12)
 
-    calculateCoocurences(stimuli, corpus, window)
+    calculateCooccurrences(stimuli, corpus, window)
     displayAssociations(stimuli, corpus)
 }
 
-fun calculateCoocurences(stimuli: List<String>, corpus: Corpus, window: Window) = Stream.concat(
+fun calculateCooccurrences(stimuli: List<String>, corpus: Corpus, window: Window) = Stream.concat(
         corpus.words(),
         List<String?>(window.size, { null }).stream()
 ).forEach {
