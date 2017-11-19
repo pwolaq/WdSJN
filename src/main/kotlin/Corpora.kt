@@ -16,9 +16,7 @@ class Corpora(private val filename: String) {
     private val cooccurrences: MutableMap<Pair<String, String>, Int> = mutableMapOf()
     private val occurrences: Map<String, Int> by lazy(LazyThreadSafetyMode.NONE) {
         logger.debug("Counting occurrences...")
-        val result = words().asSequence().groupBy { it }.map {
-            Pair(it.key, it.value.count())
-        }.toMap()
+        val result = words().asSequence().groupingBy { it }.eachCount()
         logger.debug("Counting occurrences [DONE]")
         result
     }
