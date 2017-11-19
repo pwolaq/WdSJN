@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
     val window = Window(12)
 
     calculateCoocurences(stimuli, corpus, window)
-    displayAssociantions(stimuli, corpus)
+    displayAssociations(stimuli, corpus)
 }
 
 fun calculateCoocurences(stimuli: List<String>, corpus: Corpus, window: Window) = Stream.concat(
@@ -24,7 +24,7 @@ fun calculateCoocurences(stimuli: List<String>, corpus: Corpus, window: Window) 
     window.slide(it)
 }
 
-fun displayAssociantions(stimuli: List<String>, corpus: Corpus) = stimuli
+fun displayAssociations(stimuli: List<String>, corpus: Corpus) = stimuli
         .filter(corpus::has)
         .map(corpus::associationsFor)
         .forEach {
