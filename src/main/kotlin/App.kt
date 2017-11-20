@@ -26,7 +26,7 @@ class App(private val corporaFile: String, private val stimuli: List<String>, wi
     ).forEach {
         val currentWord = window.currentWord()
         if (currentWord != null && stimuli.contains(currentWord)) {
-            corpora.updateCoOccurences(currentWord, window)
+            corpora.updateCoOccurences(currentWord, window.words(currentWord))
         }
         window.slide(it)
     }
@@ -47,5 +47,8 @@ fun main(args: Array<String>) {
         throw IllegalArgumentException("Invalid number of arguments. Corpora and at least one stimulus word are required.")
     }
 
-    App(args[0], args.drop(1), 12)
+    val corpora = args[0]
+    val stimuli = args.drop(1)
+
+    App(corpora, stimuli, 12)
 }

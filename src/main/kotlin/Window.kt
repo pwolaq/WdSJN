@@ -1,5 +1,7 @@
+import java.util.*
+
 class Window(val size: Int) {
-    private val items: MutableList<String?> = mutableListOf()
+    private val items: LinkedList<String?> = LinkedList()
 
     init {
         for (index in 0..size * 2) {
@@ -12,7 +14,7 @@ class Window(val size: Int) {
     fun words(stimulus: String) = items.filter { it != null && it != stimulus }
 
     fun slide(word: String?) {
-        items.removeAt(0)
-        items.add(word)
+        items.removeFirst()
+        items.addLast(word)
     }
 }

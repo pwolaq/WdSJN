@@ -1,8 +1,6 @@
 import morfologik.stemming.polish.PolishStemmer
 import mu.KLogging
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
@@ -12,6 +10,8 @@ class Corpora(private val filename: String) {
     private val gamma = 0.00002
     private val numberOfAssociations = 10
 
+    private val filterRegex = Regex("[^a-ząćęłóńśżź]")
+    private val splitRegex = Regex("\\s+")
     private val stemmer = PolishStemmer()
     private val cooccurrences: MutableMap<Pair<String, String>, Int> = mutableMapOf()
     private val occurrences: Map<String, Int> by lazy(LazyThreadSafetyMode.NONE) {
@@ -20,9 +20,9 @@ class Corpora(private val filename: String) {
         logger.debug("Counting occurrences [DONE]")
         result
     }
-    private val size: Long by lazy(LazyThreadSafetyMode.NONE) {
+    private val size: Int by lazy(LazyThreadSafetyMode.NONE) {
         logger.debug("Counting words...")
-        val result = words().count()
+        val result = occurrences.values.sum()
         logger.debug("Counting words [DONE]")
         result
     }
@@ -45,18 +45,16 @@ class Corpora(private val filename: String) {
     fun words(): Stream<String> = File(filename)
             .bufferedReader()
             .lines()
-            .map { it.split(Regex("\\s+")) }
+            .map { it.split(splitRegex) }
             .flatMap { it.stream() }
             .map(this::transform)
             .filter(CharSequence::isNotEmpty)
 
-    fun updateCoOccurences(stimulus: String, window: Window) {
-        window.words(stimulus).forEach {
+    fun updateCoOccurences(stimulus: String, words: List<String?>) = words.forEach {
             val pair = Pair(stimulus, it!!)
             val occurrences = cooccurrences.getOrDefault(pair, 0)
             cooccurrences[pair] = occurrences + 1
         }
-    }
 
     fun has(word: String) = occurrences.containsKey(word)
 
@@ -74,7 +72,7 @@ class Corpora(private val filename: String) {
         return result
     }
 
-    private fun transform(word: String) = stem(word.toLowerCase().replace(Regex("[^a-ząćęłóńśżź]"), ""))
+    private fun transform(word: String) = stem(word.toLowerCase().replace(filterRegex, ""))
 
     private fun stem(word: String): String {
         val stem = stemmer.lookup(word)
