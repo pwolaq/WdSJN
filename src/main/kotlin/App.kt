@@ -7,6 +7,7 @@ class App(private val corporaFile: String, private val stimuli: List<String>, wi
         logger.debug("Reading corpora...")
         val result = Corpora(corporaFile)
         logger.debug("Reading corpora [DONE]")
+        result.saveDump()
         result
     }
 

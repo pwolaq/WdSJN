@@ -10,13 +10,14 @@ class Corpora(private val filename: String) {
     private val gamma = 0.00002
     private val numberOfAssociations = 10
 
+    private val dumpFilename = "$filename.dump"
     private val filterRegex = Regex("[^a-ząćęłóńśżź]")
     private val splitRegex = Regex("\\s+")
     private val stemmer = PolishStemmer()
     private val cooccurrences: MutableMap<Pair<String, String>, Int> = mutableMapOf()
     private val occurrences: Map<String, Int> by lazy(LazyThreadSafetyMode.NONE) {
         logger.debug("Counting occurrences...")
-        val result = words().asSequence().groupingBy { it }.eachCount()
+        val result = loadDump() ?: countOccurrences()
         logger.debug("Counting occurrences [DONE]")
         result
     }
@@ -69,6 +70,52 @@ class Corpora(private val filename: String) {
                 .toList()
         )
         logger.debug("Calculating associations for $stimulus [DONE]")
+        return result
+    }
+
+    fun saveDump() {
+        val file = File(dumpFilename)
+
+        if (!file.exists()) {
+            logger.debug("Saving dump to file: $dumpFilename...")
+            file.createNewFile()
+            file.setWritable(true)
+            val writer = file.bufferedWriter()
+            occurrences.entries.forEach {
+                writer.write("${it.key},${it.value}")
+                writer.newLine()
+            }
+            writer.flush()
+            writer.close()
+            logger.debug("Saving dump to file: $dumpFilename... [DONE]")
+        }
+    }
+
+    private fun loadDump(): Map<String, Int>? {
+        val file = File(dumpFilename)
+
+        if (file.exists()) {
+            logger.debug("Loading occurrences from dump file: $dumpFilename...")
+            val map = HashMap<String, Int>()
+            file.useLines {
+                lines -> lines.forEach {
+                    val (word, count) = it.split(",")
+                    map[word] = count.toInt()
+                }
+            }
+            logger.debug("Loading occurrences from dump file: $dumpFilename... [DONE]")
+            return map
+        }
+
+        logger.info("Dump file not found.")
+
+        return null
+    }
+
+    private fun countOccurrences(): Map<String, Int> {
+        logger.debug("Counting occurrences manually...")
+        val result = words().asSequence().groupingBy { it }.eachCount()
+        logger.debug("Counting occurrences manually... [DONE]")
         return result
     }
 
