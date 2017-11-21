@@ -30,7 +30,7 @@ class Corpora(private val filename: String) {
 
     init {
         logger.info("File: $filename")
-        logger.info("Size: $size words")
+        logger.info("Size: $size words (after filtering)")
     }
 
     private val betaSize: Double by lazy(LazyThreadSafetyMode.NONE) {
@@ -49,7 +49,7 @@ class Corpora(private val filename: String) {
             .map { it.split(splitRegex) }
             .flatMap { it.stream() }
             .map(this::transform)
-            .filter(CharSequence::isNotEmpty)
+            .filter { it.length > 2 }
 
     fun updateCoOccurences(stimulus: String, words: List<String?>) = words.forEach {
             val pair = Pair(stimulus, it!!)
