@@ -65,7 +65,7 @@ class Corpora(private val filename: String) {
                 .stream()
                 .map { Pair(it, calculateStrength(stimulus, it)) }
                 .asSequence()
-                .sortedBy { it.second }
+                .sortedByDescending { it.second }
                 .take(numberOfAssociations)
                 .toList()
         )
