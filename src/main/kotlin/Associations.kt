@@ -1,7 +1,7 @@
 import mu.KLogging
 import java.util.stream.Stream
 
-class App(private val corporaFile: String, private val stimuli: List<String>, windowSize: Int) {
+class Associations(private val corporaFile: String, private val stimuli: List<String>, windowSize: Int) {
     private val window = Window(windowSize)
     private val corpora: Corpora by lazy(LazyThreadSafetyMode.NONE) {
         logger.debug("Reading corpora...")
@@ -51,5 +51,5 @@ fun main(args: Array<String>) {
     val corpora = args[0]
     val stimuli = args.drop(1)
 
-    App(corpora, stimuli, 12)
+    Associations(corpora, stimuli, 12)
 }
