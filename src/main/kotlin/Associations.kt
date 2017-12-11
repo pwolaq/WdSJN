@@ -1,5 +1,6 @@
 import mu.KLogging
 import java.io.File
+import java.io.PrintWriter
 import java.util.stream.Stream
 
 class Associations(output: String, private val corporaFile: String, private val stimuli: List<String>, windowSize: Int) {
@@ -14,17 +15,31 @@ class Associations(output: String, private val corporaFile: String, private val 
     }
 
     init {
-        outputDirectory.mkdirs()
+        prepareOutputDirectory()
         logger.info("Stimuli: ${stimuli.joinToString()}")
+
         logger.debug("Calculating cooccurrences...")
         calculateCooccurrences()
         logger.debug("Calculating cooccurrences [DONE]")
+
         logger.debug("Calculating associations...")
         val associations = calculateAssociations()
         logger.debug("Calculating associations [DONE]")
+
         logger.debug("Saving associations...")
         saveAssociations(associations)
         logger.debug("Saving associations [DONE]")
+
+        logger.debug("Extracting sentences...")
+        extractSentences(associations)
+        logger.debug("Extracting sentences [DONE]")
+    }
+
+    private fun prepareOutputDirectory() {
+        if (outputDirectory.isDirectory) {
+            outputDirectory.deleteRecursively()
+            outputDirectory.mkdirs()
+        }
     }
 
     private fun calculateCooccurrences() = Stream.concat(
@@ -49,6 +64,66 @@ class Associations(output: String, private val corporaFile: String, private val 
             }
         }
     }
+
+    private fun extractSentences(associations: List<Pair<String, List<Pair<String, Double>>>>) {
+        val words = mapWordsToStimuli(associations)
+        val files = mapWordsToWriters(words)
+
+        extractSentencesToFiles(words, files)
+    }
+
+    private fun extractSentencesToFiles(words: Map<String, List<String>>, files: Map<Pair<String, String>, PrintWriter>) {
+        val window = Window(20)
+
+        Stream.concat(
+                corpora.originalWords(),
+                List<String?>(window.size, { null }).stream()
+        ).forEach {
+            val currentWord = corpora.stem(window.currentWord() ?: "")
+            if (words.containsKey(currentWord)) {
+                val sentence = window.sentence()
+                window.words(currentWord).map(
+                        corpora::stem
+                ).forEach {
+                    if (words[currentWord]!!.contains(it)) {
+                        files[Pair(it, currentWord)]!!.println(sentence)
+                    }
+                }
+            }
+            window.slide(it)
+        }
+
+        files.forEach {
+            it.value.close()
+        }
+    }
+
+    private fun mapWordsToStimuli(associations: List<Pair<String, List<Pair<String, Double>>>>): Map<String, List<String>> {
+        val words: MutableMap<String, MutableList<String>> = mutableMapOf()
+
+        associations.forEach {
+            val stimulus = it.first
+            it.second.forEach {
+                if (words.containsKey(it.first)) {
+                    words[it.first]!!.add(stimulus)
+                } else {
+                    words[it.first] = mutableListOf(stimulus)
+                }
+            }
+        }
+
+        return words
+    }
+
+    private fun mapWordsToWriters(words: Map<String, List<String>>) =
+            words.flatMap {
+                val word = it.key
+                it.value.map {
+                    Pair(it, word)
+                }
+            }.map {
+                it to File(outputDirectory, "${it.first}-${it.second}.txt").printWriter()
+            }.toMap()
 
     companion object : KLogging()
 }

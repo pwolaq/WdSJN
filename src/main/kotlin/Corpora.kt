@@ -43,13 +43,16 @@ class Corpora(private val filename: String) {
         Math.pow(size.toDouble(), alpha)
     }
 
-    fun words(): Stream<String> = File(filename)
+    fun words(): Stream<String> = originalWords()
+            .map(this::stem)
+            .filter { it.length > 2 }
+
+    fun originalWords(): Stream<String> = File(filename)
             .bufferedReader()
             .lines()
             .map { it.split(splitRegex) }
             .flatMap { it.stream() }
             .map(this::transform)
-            .filter { it.length > 2 }
 
     fun updateCoOccurences(stimulus: String, words: List<String?>) = words.forEach {
         val pair = Pair(stimulus, it!!)
@@ -119,9 +122,9 @@ class Corpora(private val filename: String) {
         return result
     }
 
-    private fun transform(word: String) = stem(word.toLowerCase().replace(filterRegex, ""))
+    private fun transform(word: String) = word.toLowerCase().replace(filterRegex, "")
 
-    private fun stem(word: String): String {
+    fun stem(word: String): String {
         val stem = stemmer.lookup(word)
         return if (stem.size > 0) stem[0].stem.toString() else word
     }

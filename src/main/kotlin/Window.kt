@@ -11,7 +11,9 @@ class Window(val size: Int) {
 
     fun currentWord() = items[size]
 
-    fun words(stimulus: String) = items.filter { it != null && it != stimulus }
+    fun sentence() = items.joinToString(" ")
+
+    fun words(stimulus: String): List<String> = items.filter { it != stimulus }.requireNoNulls()
 
     fun slide(word: String?) {
         items.removeFirst()
