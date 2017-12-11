@@ -17,7 +17,7 @@ fun process(file: File) {
             .filter { it.first > 2 }
             .map { clean(it.second) }
             .filter { valid(it) }
-            .limit(10)
+            .limit(30)
             .forEach { println("\t$it") }
 }
 

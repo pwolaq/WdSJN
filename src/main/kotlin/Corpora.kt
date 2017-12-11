@@ -8,7 +8,7 @@ class Corpora(private val filename: String) {
     private val alpha = 0.66
     private val beta = 0.00002
     private val gamma = 0.00002
-    private val numberOfAssociations = 10
+    private val numberOfAssociations = 30
 
     private val dumpFilename = "$filename.dump"
     private val filterRegex = Regex("[^a-ząćęłóńśżź]")
