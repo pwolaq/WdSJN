@@ -52,10 +52,10 @@ class Corpora(private val filename: String) {
             .filter { it.length > 2 }
 
     fun updateCoOccurences(stimulus: String, words: List<String?>) = words.forEach {
-            val pair = Pair(stimulus, it!!)
-            val occurrences = cooccurrences.getOrDefault(pair, 0)
-            cooccurrences[pair] = occurrences + 1
-        }
+        val pair = Pair(stimulus, it!!)
+        val occurrences = cooccurrences.getOrDefault(pair, 0)
+        cooccurrences[pair] = occurrences + 1
+    }
 
     fun has(word: String) = occurrences.containsKey(word)
 
@@ -97,8 +97,8 @@ class Corpora(private val filename: String) {
         if (file.exists()) {
             logger.debug("Loading occurrences from dump file: $dumpFilename...")
             val map = HashMap<String, Int>()
-            file.useLines {
-                lines -> lines.forEach {
+            file.useLines { lines ->
+                lines.forEach {
                     val (word, count) = it.split(",")
                     map[word] = count.toInt()
                 }
@@ -135,5 +135,5 @@ class Corpora(private val filename: String) {
         return if (occurrence > betaSize) Math.pow(occurrence.toDouble(), alpha) else gammaSize
     }
 
-    companion object: KLogging()
+    companion object : KLogging()
 }
