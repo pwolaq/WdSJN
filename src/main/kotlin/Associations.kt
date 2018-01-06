@@ -39,6 +39,8 @@ class Associations(output: String, private val corporaFile: String, private val 
         if (outputDirectory.isDirectory) {
             outputDirectory.deleteRecursively()
             outputDirectory.mkdirs()
+        } else if(!outputDirectory.exists()) {
+            outputDirectory.mkdirs()
         }
     }
 

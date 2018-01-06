@@ -1,11 +1,20 @@
+import morfologik.stemming.polish.PolishStemmer
 import java.io.File
+
+val regex = Regex("[^a-ząćęłóńśżź\\s]")
+val stemmer = PolishStemmer()
+
+fun stem(word: String): String {
+    val stem = stemmer.lookup(word)
+    return if (stem.size > 0) stem[0].stem.toString() else word
+}
 
 fun valid(word: String) = word != "puste" && word.length > 3
 
 fun clean(word: String) = word
         .trim()
         .toLowerCase()
-        .replace(Regex("[^a-ząćęłóńśżź\\s]"), "")
+        .replace(regex, "")
 
 fun process(file: File) {
     println(file.nameWithoutExtension)
@@ -17,6 +26,8 @@ fun process(file: File) {
             .filter { it.first > 2 }
             .map { clean(it.second) }
             .filter { valid(it) }
+            .map { stem(it) }
+            .distinct()
             .limit(30)
             .forEach { println("\t$it") }
 }
